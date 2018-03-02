@@ -30,6 +30,7 @@ items = [] #contains dictionary for each item
 #OR use silent=True   ->it returns None on getting error
 
 class Item(Resource):
+	
 	@jwt_required()
 	def get(self,name):
 		item = 	next(filter(lambda x: x['name']==name,items), None)
@@ -54,4 +55,4 @@ class ItemList(Resource):
 api.add_resource(Item,'/item/<string:name>')
 api.add_resource(ItemList,'/items')
 
-app.run(port=5000, debug=True)
+app.run(port=5050, debug=True)
