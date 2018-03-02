@@ -8,11 +8,11 @@ items = [] #contains dictionary for each item
 
 #Every resouce has to be a class
 class Item(Resource):
-	def get(self, name):
-		for item in items:
-			if(item['name']==name):
-				return item
-		return {'name': None},404  
+	# def get(self, name):
+	# 	for item in items:
+	# 		if(item['name']==name):
+	# 			return item
+	# 	return {'name': None},404  
 # Python methods return None by default		return None
 
 #	def post(self,name):
@@ -23,7 +23,15 @@ class Item(Resource):
 
 #OR use silent=True   ->it returns None on getting error
 
+	
+	def get(self,name):
+		item = 	next(filter(lambda x: x['name']==name,items), None)
+		return {'item':item}, 200 if item else 404    
+
 	def post(self,name):
+		if next(filter(lambda x: x['name']==name,items), None) is not None:
+			return {'message':"An item with name'{}'already exists.".format(name)},400 #bad request
+
 		data = request.get_json()
 		item = {'name':  name,
 				'price': data['price']}
