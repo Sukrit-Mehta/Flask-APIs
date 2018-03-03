@@ -46,6 +46,22 @@ class Item(Resource):
 		return item,201       #convey to use rthat item is created.
 							  #201 code for created
 
+	def  delete(self,name):
+		global items
+		items = list(filter(lambda x: x['name'] !=name, items))
+		return {'message':'Item deleted..!'}
+
+
+	def put(self,name):
+		data = request.get_json()
+		item = next(filter(lambda x: x['name'] == name,items),None)
+		if item is None:
+			item = {'name':name,'price':data['price']}
+			items.append(item)
+		else:
+			item.update(data)                 #dictionaries have update methode
+		return item
+
 
 class ItemList(Resource):
 	def get(self):
