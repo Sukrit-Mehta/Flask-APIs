@@ -13,6 +13,12 @@ class Item(Resource):
 
 	@jwt_required()
 	def get(self,name):
+		   item = self.find_by_name(name)
+		   if item:
+		   		return item
+		   return {"message":"Item not found"}, 404
+
+	def find_by_name(self,name):
 		   connection = sqlite3.connect('data.db')
 		   cursor = connection.cursor()
 
@@ -22,18 +28,25 @@ class Item(Resource):
 		   connection.close()
 
 		   if row:
-		   	  return {"item": {"name":row[0],"price":row[1]}}
-		   return {"message":"Item not found"}, 404
+		   	  return {"item": {"name":row[0],"price":row[1]}}		
 
 
 	def post(self,name):
-		if next(filter(lambda x: x['name']==name,items), None) is not None:
+		if self.find_by_name(name):
 			return {'message':"An item with name'{}'already exists.".format(name)},400 #bad request
 
 		data = Item.parser.parse_args()
 		item = {'name':  name,
 				'price': data['price']}
-		items.append(item)
+		connection = sqlite3.connect('data.db')
+		cursor = connection.cursor()
+
+		insert_query = "INSERT INTO items VALUES(?, ?)"
+		cursor.execute(insert_query,(item['name'],item['price']))
+
+		connection.commit()
+		connection.close()
+
 		return item,201       #convey to use rthat item is created.
 							  #201 code for created
 
@@ -58,4 +71,10 @@ class Item(Resource):
 
 class ItemList(Resource):
 	def get(self):
-		return {'items':items}
+		connection = sqlite3.connect("data.db")
+		cursor = connection.cursor()
+		fetch_list_query = "SELECT * FROM items"
+		result = cursor.execute(fetch_list_query)
+		for row in result:
+			print(row)
+		return {'items':result}
