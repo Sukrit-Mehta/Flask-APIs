@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, reqparse
 from flask_jwt import JWT, jwt_required
 
 from security import authenticate,identity
@@ -30,6 +30,14 @@ items = [] #contains dictionary for each item
 #OR use silent=True   ->it returns None on getting error
 
 class Item(Resource):
+
+	parser = reqparse.RequestParser()
+	parser.add_argument('price',
+			type=float,
+			required=True,
+			help="This field cannot be left blank !"
+			)
+
 	@jwt_required()
 	def get(self,name):
 		item = 	next(filter(lambda x: x['name']==name,items), None)
@@ -39,7 +47,8 @@ class Item(Resource):
 		if next(filter(lambda x: x['name']==name,items), None) is not None:
 			return {'message':"An item with name'{}'already exists.".format(name)},400 #bad request
 
-		data = request.get_json()
+#		data = request.get_json()
+		data = Item.parser.parse_args()
 		item = {'name':  name,
 				'price': data['price']}
 		items.append(item)
@@ -53,13 +62,15 @@ class Item(Resource):
 
 
 	def put(self,name):
-		data = request.get_json()
+		
+		data = Item.parser.parse_args()
 		item = next(filter(lambda x: x['name'] == name,items),None)
 		if item is None:
-			item = {'name':name,'price':data['price']}
+			item = {'name':name,
+			'price':data['price']}
 			items.append(item)
 		else:
-			item.update(data)                 #dictionaries have update methode
+			item.update(data) #dictionaries have update methods
 		return item
 
 
